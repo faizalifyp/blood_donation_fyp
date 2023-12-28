@@ -4,7 +4,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:blood_donation_fyp/Models/User.dart';
 
-Future<void> signUpWithEmailAndPassword(UserModel user) async {
+String resposne = "";
+
+Future<bool> signUpWithEmailAndPassword(UserModel user) async {
   try {
     UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
       email: user.email,
@@ -18,15 +20,21 @@ Future<void> signUpWithEmailAndPassword(UserModel user) async {
     await addUserToFirestore(firebaseUser!.uid,user);
   } on FirebaseAuthException catch (e) {
     if (e.code == 'weak-password') {
-      log('The password provided is too weak.');
+      resposne = 'The password provided is too weak.';
     } else if (e.code == 'email-already-in-use') {
-      log('The account already exists for that email.');
+      resposne = 'The account already exists for that email.';
+
     }
+    return false;
+
   } catch (e) {
     log(e.toString());
+    return false;
+
   }
 
   log('user added');
+  return true;
 
 }
 
@@ -48,6 +56,22 @@ Future<void> addUserToFirestore(String uid, UserModel user) async {
 }
 
 
+Future<bool> doesUserExist(String email) async {
+  try {
+    // Query Firestore or your user database to check if the user exists
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .where('email', isEqualTo: email)
+        .get();
+
+    return querySnapshot.docs.isNotEmpty; // User exists if there are matching documents
+  } catch (e) {
+    // Handle any exceptions or errors
+    print('Error checking user existence: $e');
+    return false;
+  }
+}
+
 
 
 Future<bool> signInWithEmailAndPassword(String email, String password) async {
@@ -56,6 +80,15 @@ Future<bool> signInWithEmailAndPassword(String email, String password) async {
   log("password: "+password);
 
   try {
+    bool userExists = await doesUserExist(email);
+
+    if (!userExists) {
+      log('No user found.');
+      resposne = "No user found.";
+      return false;
+    }
+
+
     UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
       email: email,
       password: password,
@@ -72,6 +105,7 @@ Future<bool> signInWithEmailAndPassword(String email, String password) async {
       log("user id is :"+ userId);
 
 
+      resposne = "Login Successful";
 
       return true;
 
@@ -79,10 +113,14 @@ Future<bool> signInWithEmailAndPassword(String email, String password) async {
     }
   } on FirebaseAuthException catch (e) {
     if (e.code == 'user-not-found') {
-      log('No user found for that email.');
+      log('No user found.');
+      resposne = "No user found.";
     } else if (e.code == 'wrong-password') {
-      log('Wrong password provided for that user.');
+      log('Wrong email or password.');
+      resposne = "Wrong email or password.";
     }
+    resposne = 'Wrong email or password.';
+
   }
 
   return false;

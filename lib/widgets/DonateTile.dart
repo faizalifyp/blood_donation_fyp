@@ -88,7 +88,7 @@ class BloodRequestTile extends StatelessWidget {
                   child: Center(
                     child: TextWidget(
                       text: bloodGroup,
-                      fontSize: 22,
+                      fontSize: 14,
                       color: Colors.white,
                     ),
                   ),

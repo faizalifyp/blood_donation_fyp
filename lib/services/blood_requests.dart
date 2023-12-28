@@ -1,3 +1,4 @@
+import 'package:blood_donation_fyp/screen/home.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../Models/BloodRequest.dart';
@@ -8,17 +9,20 @@ Future<void> addBloodRequest(BloodRequest request) async {
   await requests.doc(request.requestId).set(request.toJson());
 }
 
-// Fetch all blood requests from Firestore
-Future<List<BloodRequest>> fetchAllBloodRequests() async {
+Stream<List<BloodRequest>> getBloodRequestsStream() {
   CollectionReference requests = FirebaseFirestore.instance.collection('requests');
-  QuerySnapshot querySnapshot = await requests.get();
-  List<BloodRequest> requestsList = [];
-  querySnapshot.docs.forEach((doc) {
-    requestsList.add(BloodRequest.fromJson(doc.data() as Map<String, dynamic>));
-  });
-  return requestsList;
-}
+  return requests.snapshots().map((querySnapshot) {
+    List<BloodRequest> requestsList = [];
+    querySnapshot.docs.forEach((doc) {
+      requestsList.add(BloodRequest.fromJson(doc.data() as Map<String, dynamic>));
+    });
+    requestsList.removeWhere((request) => request.uid == getCurrentUserId());
+    requestsList.removeWhere((request) => request.status == "approved");
 
+    return requestsList;
+  });
+
+}
 
 
 

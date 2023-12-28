@@ -37,7 +37,7 @@ class _IntroPage2State extends State<IntroPage2> {
                   Align(
                     alignment: Alignment.center,
                     child: TextWidget(
-                      text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Arcu tristique tristique quam in.',
+                      text: '',
                       fontSize: 20.sp,
                       color: knormalText,
                     ),
@@ -59,17 +59,7 @@ class _IntroPage2State extends State<IntroPage2> {
                       weight: FontWeight.w400,
                     ),
                   ),
-                  InkWell(
-                    onTap: ()=>Navigator.pushReplacement(context,
-                      MaterialPageRoute(builder:
-                          (context)=>const Onboarding(),
-                      ),
-                    ),
-                    child: TextWidget(
-                        text: 'Next',
-                        fontSize: 20,
-                        color: kmaincolor),
-                  ),
+
                 ],
               ),
             ),

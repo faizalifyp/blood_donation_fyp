@@ -42,6 +42,10 @@ dependencies:
   firebase_storage: ^11.0.5
   cloud_firestore: ^4.0.5
   url_launcher: ^6.2.1
+  firebase_messaging: ^14.7.9
+  image_picker: ^1.0.7
+  audioplayers: ^5.2.1
+  flutter_ringtone_player: ^3.2.0
 
 dev_dependencies:
   flutter_test:

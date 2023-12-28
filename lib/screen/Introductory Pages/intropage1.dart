@@ -53,14 +53,14 @@ class _IntroPage1State extends State<IntroPage1> {
                 children: [
                   Image.asset('images/blood_test.png'),
                   TextWidget(
-                      text: 'Finad Blood Donors',
+                      text: 'Find Blood Donors',
                       fontSize: 24.sp,
                       color: kheading,
                       weight: FontWeight.w500),
                   Align(
                     alignment: Alignment.center,
                     child: TextWidget(
-                      text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Arcu tristique tristique quam in.',
+                      text: '',
                       fontSize: 20.sp,
                       color: knormalText,
                     ),
@@ -82,18 +82,7 @@ class _IntroPage1State extends State<IntroPage1> {
                       weight: FontWeight.w400,
                     ),
                   ),
-                  InkWell(
-                    onTap:
-                        ()=>Navigator.push(context,
-                          MaterialPageRoute(builder:
-                              (context)=>IntroPage2(),
-                          ),
-                        ),
-                    child: TextWidget(
-                        text: 'Next',
-                        fontSize: 20,
-                        color: kmaincolor),
-                  ),
+
                 ],
               ),
             ),

@@ -37,16 +37,35 @@ class DonorDetailsCard extends StatelessWidget {
         ),
         child: Row(
           // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
           children: [
             SizedBox(height: 10.h,),
             Padding(
-              padding: EdgeInsets.symmetric(vertical: 13.h,horizontal: 14.w),
+              padding: EdgeInsets.symmetric(vertical: 13.h, horizontal: 14.w),
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Image.asset(image, fit: BoxFit.cover,),
+                child: image == null || image == ''
+                    ?
+                     CircleAvatar(
+                  radius: 28.0, // Adjust the radius as needed
+                  backgroundColor: Colors.white, // Set a desired color for the empty circle
+                ) : Image.network(
+                  image ?? '', // Use '??' to handle null values
+                  fit: BoxFit.cover,
+                  loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                    if (loadingProgress == null) {
+                      return child;
+                    } else {
+                      // Display a circular placeholder while the image is loading
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    }
+                  },
+                ),
               ),
             ),
             Expanded(

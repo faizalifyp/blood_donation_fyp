@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:blood_donation_fyp/screen/SingleDonorDetailScreen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -31,6 +32,23 @@ class _FindDonorsState extends State<FindDonors> {
     super.initState();
     fetchUsers();
   }
+
+  void _settingModelBottomNaviation(UserModel user, String requestID){
+    showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        // clipBehavior: Clip.none,
+
+        builder: (BuildContext context){
+
+          return SingleDonorDetailScreen( user: user, request: false, requestID: requestID);
+        });
+  }
+
+
+
+
 // Function to fetch all users from Firestore
   void fetchUsers() async {
     List<UserModel> fetchedUsers = await fetchAllUsers(await getCurrentUserId());
@@ -61,18 +79,18 @@ class _FindDonorsState extends State<FindDonors> {
   }
 
 
-  void _settingModelBottomNaviation(int index){
-    showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        backgroundColor: Colors.transparent,
-        // clipBehavior: Clip.none,
-
-        builder: (BuildContext context){
-
-          return SingleDonorDetailScreen( index: index);
-    });
-  }
+  // void _settingModelBottomNaviation(int index){
+  //   showModalBottomSheet(
+  //       context: context,
+  //       isScrollControlled: true,
+  //       backgroundColor: Colors.transparent,
+  //       // clipBehavior: Clip.none,
+  //
+  //       builder: (BuildContext context){
+  //
+  //         return SingleDonorDetailScreen( index: index);
+  //   });
+  // }
 
 
 
@@ -192,14 +210,15 @@ class _FindDonorsState extends State<FindDonors> {
                         shrinkWrap: true,
                         itemCount: filteredUsers.length,
                         itemBuilder: (context, index) {
+
                           return GestureDetector(
                             onTap: () {
-                              _settingModelBottomNaviation(index);
+                              _settingModelBottomNaviation(filteredUsers[index],'' );
                             },
                             child: DonorDetailsCard(
                               name: filteredUsers[index].name,
                               location: filteredUsers[index].location,
-                              image: DonorsList[index].image,
+                              image: filteredUsers[index].image!,
                               bloodgroup: filteredUsers[index].bloodGroup,
                             ),
                           );

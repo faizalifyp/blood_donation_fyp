@@ -12,6 +12,7 @@ class UserModel {
   String phone;
   String bloodGroup;
   String location;
+  String? image;
 
   UserModel({
     required this.uid,
@@ -21,6 +22,7 @@ class UserModel {
     required this.phone,
     required this.bloodGroup,
     required this.location,
+    this.image = '',    // Default empty string for image URL
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -32,6 +34,8 @@ class UserModel {
       phone: json['phone'],
       bloodGroup: json['bloodGroup'],
       location: json['location'],
+      image: json['profileImageUrl'] ?? '', // Use empty string if 'image' is null
+
     );
   }
 
@@ -44,6 +48,7 @@ class UserModel {
       'phone': phone,
       'bloodGroup': bloodGroup,
       'location': location,
+      'profileImageUrl': image,
     };
   }
 

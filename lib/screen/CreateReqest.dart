@@ -33,6 +33,73 @@ class _CreateRequestState extends State<CreateRequest> {
     return docRef.id;
   }
 
+
+  String? _selectedBloodType; // To store the selected blood type
+  List<String> _bloodTypes = [
+    'A+',
+    'A-',
+    'B+',
+    'B-',
+    'AB+',
+    'AB-',
+    'O+',
+    'O-',
+  ]; // List of blood types
+
+  String? _selectedCity; // To store the selected city
+  String _defaultCity = 'Select City'; // Default city
+  List<String> pakistaniCities = [
+    'Abbottabad',
+    'Bahawalpur',
+    'Bhalwal',
+    'Charsadda',
+    'Chaman',
+    'Chiniot',
+    'Daska',
+    'Dera Ghazi Khan',
+    'Dera Ismail Khan',
+    'Faisalabad',
+    'Gojra',
+    'Gujranwala',
+    'Gujrat',
+    'Gwadar',
+    'Hub',
+    'Islamabad',
+    'Jacobabad',
+    'Jalalpur',
+    'Jhang',
+    'Jhelum',
+    'Karachi',
+    'Kasur',
+    'Khairpur',
+    'Khuzdar',
+    'Kohat',
+    'Lahore',
+    'Larkana',
+    'Mandi Bahauddin',
+    'Mardan',
+    'Mingora',
+    'Mirpur',
+    'Multan',
+    'Muzaffarabad',
+    'Nawabshah',
+    'Nowshera',
+    'Okara',
+    'Peshawar',
+    'Quetta',
+    'Rahim Yar Khan',
+    'Rawalpindi',
+    'Sadiqabad',
+    'Sahiwal',
+    'Sargodha',
+    'Sheikhupura',
+    'Shikarpur',
+    'Sialkot',
+    'Sukkur',
+    'Swabi',
+    'Wah Cantonment',
+  ];
+
 // Function to get the current user's ID
   String getCurrentUserId() {
     User? user = FirebaseAuth.instance.currentUser;
@@ -54,9 +121,9 @@ class _CreateRequestState extends State<CreateRequest> {
         // Replace with your own logic to generate request ID
         uid: uid,
         // Replace with the actual user ID
-        city: _cityController.text,
+        city: _selectedCity!,
         hospital: _hospitalController.text,
-        bloodType: _bloodTypeController.text,
+        bloodType: _selectedBloodType!,
         mobile: _mobileController.text,
         note: _noteController.text,
         status: 'pending',
@@ -175,21 +242,39 @@ class _CreateRequestState extends State<CreateRequest> {
                   ),
                 ),
                 SizedBox(height: 120),
-                TextFormField(
-                  controller: _cityController,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter some text';
-                    }
-                    return null;
-                  },
+                DropdownButtonFormField<String>(
+                  style: TextStyle(fontSize: 20, color: Colors.black),
                   decoration: InputDecoration(
-                    hintText: 'City',
-                    prefixIcon: Icon(
+                    hintStyle: TextStyle(fontSize: 20.0),
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Colors.red,
+                      ),
+                    ),
+                    prefixIcon: const Icon(
                       Icons.location_on_outlined,
                       color: kmaincolor,
                     ),
+                    hintText: _defaultCity, // Use the default city as hint text
                   ),
+                  value: _selectedCity, // Initially selected value (can be null)
+                  items: pakistaniCities.map((String city) {
+                    return DropdownMenuItem<String>(
+                      value: city,
+                      child: Text(city),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedCity = newValue;
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty || value == _defaultCity) {
+                      return 'Select Your City';
+                    }
+                    return null;
+                  },
                 ),
                 SizedBox(height: 20),
                 TextFormField(
@@ -209,24 +294,45 @@ class _CreateRequestState extends State<CreateRequest> {
                   ),
                 ),
                 SizedBox(height: 20),
-                TextFormField(
-                  controller: _bloodTypeController,
+                DropdownButtonFormField<String>(
+                  style: TextStyle(fontSize: 20, color: Colors.black),
+                  decoration: InputDecoration(
+                    hintStyle: TextStyle(fontSize: 20.0,),
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Colors.red,
+                      ),
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.water_drop_outlined,
+                      color: kmaincolor,
+                    ),
+                    hintText: 'Select Blood Type',
+                  ),
+                  value: _selectedBloodType, // Initially selected value (can be null)
+                  items: _bloodTypes.map((String bloodType) {
+                    return DropdownMenuItem<String>(
+                      value: bloodType,
+                      child: Text(bloodType),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedBloodType = newValue;
+                    });
+                  },
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter some text';
+                      return 'Select Your Blood Type';
                     }
                     return null;
                   },
-                  decoration: InputDecoration(
-                    hintText: 'Blood Type',
-                    prefixIcon: Icon(
-                      Icons.bloodtype_outlined,
-                      color: kmaincolor,
-                    ),
-                  ),
                 ),
                 SizedBox(height: 20),
+
+
                 TextFormField(
+
                   controller: _mobileController,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -235,6 +341,7 @@ class _CreateRequestState extends State<CreateRequest> {
                     return null;
                   },
                   decoration: InputDecoration(
+
                     hintText: 'Mobile',
                     prefixIcon: Icon(
                       Icons.phone,
@@ -273,6 +380,8 @@ class _CreateRequestState extends State<CreateRequest> {
   }
 
   void clearFields() {
+    _selectedBloodType =  null;
+    _selectedCity = null;
     _cityController.clear();
     _hospitalController.clear();
     _bloodTypeController.clear();

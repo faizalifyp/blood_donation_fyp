@@ -31,6 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool loading = false;
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -99,7 +100,24 @@ class _LoginScreenState extends State<LoginScreen> {
                   key: _formkey,
                   child: Column(
                     children: [
-                      Textformfield(
+                      TextFormField(
+                        style: TextStyle(fontSize: 20, color: Colors.black),
+                        decoration: InputDecoration(
+                          hintStyle: TextStyle(fontSize: 20.0, color: Colors.grey),
+                          border: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.red,
+                            ),
+                          ),
+                          prefixIcon: const Icon(
+                          Icons.email,
+                          color: kmaincolor,
+                        ),
+                          hintText: 'faizali@gmail.com',
+                        ),
+                        keyboardType: TextInputType.emailAddress,
+
+
                         controller : _emailController,
 
                         validator: (value) {
@@ -113,14 +131,30 @@ class _LoginScreenState extends State<LoginScreen> {
                           return null;
                         },
 
+
+
                         //value.isEmpty ? "Email cannot be empty" : null,
-                          hintText: 'Faizali@gmail.com',
-                          obsecureText: false,
-                          keybordtype: TextInputType.emailAddress,
-                          icon: Icons.email_outlined,
+
+
                       ),
                       SizedBox(height: 25.h,),
-                      Textformfield(
+                      TextFormField(
+                        obscureText: true,
+                          style: TextStyle(fontSize: 20, color: Colors.black),
+                          decoration: InputDecoration(
+
+                            hintStyle: TextStyle(fontSize: 20.0, color: Colors.grey),
+                            border: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Colors.red,
+                              ),
+                            ),
+                            prefixIcon: const Icon(
+                              Icons.lock_outline,
+                              color: kmaincolor,
+                            ),
+                            hintText: '***********',
+                          ),
                           controller : _passwordController,
                           validator: (value) {
                             if (value!.isEmpty) {
@@ -132,10 +166,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             // print(value);
                             return null;
                           },
-                          hintText: '***********',
-                          obsecureText: true,
-                          keybordtype: TextInputType.visiblePassword,
-                          icon: Icons.lock_outline),
+
+                          keyboardType: TextInputType.visiblePassword,
+                          ),
                     ],
                   ),
                 ),
@@ -158,8 +191,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       if(res){
 
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                          content: Text("Login Success"),
+                        ScaffoldMessenger.of(context).showSnackBar( SnackBar(
+                          content: Text(resposne),
                         ));
 
                         Navigator.pushReplacement(context,
@@ -168,8 +201,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         )  ;
                       }else{
 
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                          content: Text("Login Failed"),
+                        ScaffoldMessenger.of(context).showSnackBar( SnackBar(
+                          content: Text(resposne),
                         ));
                       }
                       setState(() {

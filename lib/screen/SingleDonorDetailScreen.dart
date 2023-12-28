@@ -1,30 +1,43 @@
 import 'package:blood_donation_fyp/constants/constant.dart';
+import 'package:blood_donation_fyp/screen/home.dart';
 import 'package:blood_donation_fyp/widgets/textwidget.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:math' as math;
 import '../Models/DonarsDetails.dart';
+import '../Models/User.dart';
 import '../widgets/ProfileButton.dart';
 
 class SingleDonorDetailScreen extends StatefulWidget {
-  final int index;
+  final UserModel user;
+  final bool request;
+  final String requestID;
+
   const SingleDonorDetailScreen({
     Key? key,
-    required this.index,
+    required this.user,
+    required this.request,
+    required this.requestID,
+
+
   }) : super(key: key);
 
   @override
   State<SingleDonorDetailScreen> createState() =>
       _SingleDonorDetailScreenState();
+
 }
 
 class _SingleDonorDetailScreenState extends State<SingleDonorDetailScreen> {
-  // print("details are $details");
+
+
+
+
   @override
   Widget build(BuildContext context) {
-    // Container hw
-    // Stack
-    // Position top -10 left:0  child Row Center Image
+
+
 
     return Container(
       width: 1.sw,
@@ -53,7 +66,7 @@ class _SingleDonorDetailScreenState extends State<SingleDonorDetailScreen> {
               ),
               TextWidget(
                 // text: widget.details,
-                text: usersDonorsList[widget.index].name,
+                text: widget.user.name,
                 fontSize: 22,
                 color: kheading,
               ),
@@ -68,7 +81,7 @@ class _SingleDonorDetailScreenState extends State<SingleDonorDetailScreen> {
                     width: 10.w,
                   ),
                   TextWidget(
-                      text: usersDonorsList[widget.index].location,
+                      text: widget.user.location,
                       fontSize: 14,
                       color: knormalText),
                 ],
@@ -94,7 +107,7 @@ class _SingleDonorDetailScreenState extends State<SingleDonorDetailScreen> {
                           Row(
                             children: [
                               TextWidget(
-                                text: '${DonorsList[widget.index].TimeDonated}',
+                                text: "${widget.user.bloodGroup}",
                                 fontSize: 16,
                                 color: kmaincolor,
                               ),
@@ -129,7 +142,7 @@ class _SingleDonorDetailScreenState extends State<SingleDonorDetailScreen> {
                                 color: knormalText,
                               ),
                               TextWidget(
-                                text: '${usersDonorsList[widget.index].bloodGroup}',
+                                text: '${widget.user.bloodGroup}',
                                 fontSize: 16,
                                 color: kmaincolor,
                               ),
@@ -148,17 +161,30 @@ class _SingleDonorDetailScreenState extends State<SingleDonorDetailScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children:  [
                   ProfileButton(
+                    uid: '',
+                    requestID: '',
                       text: 'Call Now',
                       icon: Icons.call,
                       color: kcallbuttoncolor,
-                    phoneNumber: usersDonorsList[widget.index].phone, // Replace with the desired phone number
+                    phoneNumber: widget.user.phone, // Replace with the desired phone number
                   ),
+                  widget.request ?
                   ProfileButton(
-                    text: 'Request',
-                    icon: Icons.arrow_back,
+                    uid: getCurrentUserId(),
+                    requestID: widget.requestID,
+                      text: 'Donate',
+                      icon: Icons.check,
+                      color: kmaincolor,
+                      phoneNumber: '', // Replace with the desired phone number
+
+                    )
+                   : ProfileButton(
+                    uid: widget.user.uid,
+                    requestID: '',
+                    text: 'Chat',
+                    icon: Icons.chat,
                     color: kmaincolor,
                     phoneNumber: '', // Replace with the desired phone number
-
                   ),
                 ],
               ),
@@ -208,44 +234,7 @@ class _SingleDonorDetailScreenState extends State<SingleDonorDetailScreen> {
                         ),
                       ),
                     ),
-                    Positioned(
-                      right: 20.w,
-                      bottom: 20.h,
-                      child: Container(
-                        width: 49.w,
-                        height: 49.h,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(5.r),
-                          color: kmaincolor,
-                        ),
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Transform.rotate(
-                              angle: 45 * math.pi / 180,
-                              child: Padding(
-                                padding: const EdgeInsets.all(10.0),
-                                child: Container(
-                                  width: 36.69.w,
-                                  height: 36.69.h,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(5.r),
-                                    border:
-                                        Border.all(width: 1.sp, color: kwhite),
-                                  ),
-                                  child: Transform.rotate(
-                                      angle: -45 * math.pi / 180,
-                                      child: const Icon(
-                                        Icons.arrow_forward,
-                                        color: kwhite,
-                                      )),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+
                   ],
                 ),
               ),
@@ -266,7 +255,8 @@ class _SingleDonorDetailScreenState extends State<SingleDonorDetailScreen> {
                     borderRadius: BorderRadius.circular(10.r),
                     color: Colors.white,
                     image: DecorationImage(
-                        image: AssetImage(DonorsList[widget.index].image),
+
+                        image: NetworkImage(widget.user.image!),
                         fit: BoxFit.contain),
                   ),
                 ),
@@ -279,3 +269,21 @@ class _SingleDonorDetailScreenState extends State<SingleDonorDetailScreen> {
     );
   }
 }
+
+
+Future<List<UserModel>> fetchUser(String currentUserId) async {
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+  QuerySnapshot querySnapshot = await firestore.collection('users').get();
+  List<UserModel> users = querySnapshot.docs.map((doc) {
+    return UserModel.fromJson(doc.data() as Map<String, dynamic>);
+  }).toList();
+
+  // Filtering out the current user based on their ID
+  users.removeWhere((user) => user.uid != currentUserId);
+
+  return users;
+}
+
+
+

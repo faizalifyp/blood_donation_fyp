@@ -1,22 +1,27 @@
 import 'dart:developer';
 
+import 'package:blood_donation_fyp/Models/User.dart';
+import 'package:blood_donation_fyp/services/notification.dart';
 import 'package:blood_donation_fyp/constants/constant.dart';
 import 'package:blood_donation_fyp/screen/CreateReqest.dart';
 import 'package:blood_donation_fyp/screen/DonationRequest.dart';
 import 'package:blood_donation_fyp/screen/FindDonors.dart';
-import 'package:blood_donation_fyp/screen/OrderBlood.dart';
+import 'package:blood_donation_fyp/screen/chatscreen.dart';
 import 'package:blood_donation_fyp/screen/Report.dart';
 import 'package:blood_donation_fyp/widgets/HomePageButtons.dart';
 import 'package:blood_donation_fyp/widgets/textwidget.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 import '../Models/BloodRequest.dart';
 import '../Models/DonationRequestList.dart';
 import '../widgets/DonateTile.dart';
+import 'SingleDonorDetailScreen.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -28,37 +33,32 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   final _controller = PageController();
   @override
+  void initState() {
+    super.initState();
+  }
+
+  void settingModelBottomNaviation(String uid, String requestID) async{
+    UserModel user = await fetchUser(uid);
+    showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        // clipBehavior: Clip.none,
+
+        builder: (BuildContext context){
+
+          return SingleDonorDetailScreen(user: user, request: false, requestID: requestID);
+        });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
           children: [
             SizedBox(height: 35.h,),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.w),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Stack(
-                    children: [
-                      const Icon(Icons.notifications_outlined, color: kheading,size: 30,),
-                      Positioned(
-                        top: 5.h,
-                        right: 3.w,
-                        left: 17.w,
-                        child: Container(
-                          height: 10.h,
-                          width: 10.w,
-                          decoration: BoxDecoration(borderRadius: BorderRadius.circular(30),
-                          color: kmaincolor),
-                        ),
-                      ),
-                    ],
-                  ),
 
-                ],
-              ),
-            ),
             SizedBox(height: 20.h,),
             SizedBox(
               height: 180.h,
@@ -135,7 +135,7 @@ class _HomeState extends State<Home> {
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children:  [
                       GestureDetector(
-                        onTap: (){
+                        onTap: ()async{
                           Navigator.push(context, MaterialPageRoute(builder: (context)=>const FindDonors()));
                         },
                         child:const HomePageButtons(
@@ -158,37 +158,13 @@ class _HomeState extends State<Home> {
                             imageAddress: 'images/report.png',
                             Text: 'Health Report'),
                       ),
-                      // GestureDetector(
-                      //   onTap: (){
-                      //     Navigator.push(context, MaterialPageRoute(builder: (context)=>const OrderBlood()));
-                      //   },
-                      //   child: const HomePageButtons(
-                      //       imageAddress: 'images/blood-bag.png',
-                      //       Text: 'Order Bloods'),
-                      // ),
 
                     ],
                   ),
                   SizedBox(
                     height: 15.h,
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children:  [
-                      // HomePageButtons(
-                      //     imageAddress: 'images/maki_doctor.png',
-                      //     Text: 'Assistant'),
 
-                      // GestureDetector(
-                      //   onTap: (){
-                      //     Navigator.push(context, MaterialPageRoute(builder: (context)=>const Compagin()));
-                      //   },
-                      //   child: HomePageButtons(
-                      //       imageAddress: 'images/compagin.png',
-                      //       Text: 'Compagin'),
-                      // ),
-                    ],
-                  ),
                   Padding(
                     padding: EdgeInsets.only(top: 15.h, bottom: 10.h),
                     child: TextWidget(
@@ -201,7 +177,44 @@ class _HomeState extends State<Home> {
 
                   SizedBox(
                     height: 400, // Adjust the height as needed
-                    child: buildBloodRequestList(),
+                    child: StreamBuilder<List<BloodRequest>>(
+                      stream: fetchBloodRequestsByCurrentUser(),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          List<BloodRequest>? bloodRequestList = snapshot.data;
+                          print("length: ${bloodRequestList!.length}");
+                          print('Blood request list from snapshot: $bloodRequestList');
+
+
+                          return ListView.builder(
+                            itemCount: bloodRequestList!.length,
+                            itemBuilder: (context, index) {
+
+                              if(bloodRequestList[index].status == "approved"){
+                                FlutterRingtonePlayer.playNotification();
+
+                                settingModelBottomNaviation(bloodRequestList[index].acceptingUserUid, bloodRequestList[index].requestId);
+                              }
+                              print('Building DonateTile for index $index');
+                              return Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: BloodRequestTile(
+                                  hospitalName: bloodRequestList[index].hospital,
+                                  city: bloodRequestList[index].city,
+                                  status: bloodRequestList[index].status,
+                                  bloodGroup: bloodRequestList[index].bloodType,
+                                ),
+                              );
+
+                            },
+                          );
+                        } else if (snapshot.hasError) {
+                          return Text('Error: ${snapshot.error}');
+                        } else {
+                          return  Container(child: const Center(child: CircularProgressIndicator())); // or any loading indicator widget
+                        }
+                      },
+                    ),
                   ),                ],
               ),
             ),
@@ -211,41 +224,10 @@ class _HomeState extends State<Home> {
         ),
       ),
     );
+
+
   }
-}
 
-// Implement ListView.builder to display the list of blood requests
-StreamBuilder<List<BloodRequest>> buildBloodRequestList() {
-  return StreamBuilder<List<BloodRequest>>(
-    stream: fetchBloodRequestsByCurrentUser(),
-    builder: (context, snapshot) {
-      if (snapshot.hasData) {
-        List<BloodRequest>? bloodRequestList = snapshot.data;
-        print("length: ${bloodRequestList!.length}");
-        print('Blood request list from snapshot: $bloodRequestList');
-
-        return ListView.builder(
-          itemCount: bloodRequestList!.length,
-          itemBuilder: (context, index) {
-            print('Building DonateTile for index $index');
-            return Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: BloodRequestTile(
-                hospitalName: bloodRequestList[index].hospital,
-                city: bloodRequestList[index].city,
-                status: bloodRequestList[index].status,
-                bloodGroup: bloodRequestList[index].bloodType,
-              ),
-            );
-          },
-        );
-      } else if (snapshot.hasError) {
-        return Text('Error: ${snapshot.error}');
-      } else {
-        return  Container(child: const Center(child: CircularProgressIndicator())); // or any loading indicator widget
-      }
-    },
-  );
 }
 
 Future<int> countDocuments() async {
@@ -256,8 +238,7 @@ Future<int> countDocuments() async {
 
   return count;
 }
-// Function to fetch all blood requests made by the current user in real time
-// Function to fetch all blood requests made by the current user in real time
+
 Stream<List<BloodRequest>> fetchBloodRequestsByCurrentUser() {
   String currentUserId = getCurrentUserId();
   CollectionReference requests = FirebaseFirestore.instance.collection('requests');
@@ -277,6 +258,7 @@ Stream<List<BloodRequest>> fetchBloodRequestsByCurrentUser() {
         status: doc['status'],
         acceptingUserUid: doc['acceptingUserUid'],
       );
+
       print('Blood request: $bloodRequest');
       return bloodRequest;
     }).toList();
@@ -291,3 +273,19 @@ String getCurrentUserId() {
   User? user = FirebaseAuth.instance.currentUser;
   return user != null ? user.uid : '';
 }
+
+Future<UserModel> fetchUser(String uid) async {
+  print("check here "+uid);
+  CollectionReference users = FirebaseFirestore.instance.collection('users');
+  QuerySnapshot querySnapshot = await users.where('uid', isEqualTo: uid).get();
+
+  if (querySnapshot.docs.isNotEmpty) {
+    // Assuming there's only one user with a specific UID, so we take the first one
+    Map<String, dynamic> userData = querySnapshot.docs[0].data() as Map<String, dynamic>;
+    return UserModel.fromJson(userData);
+  } else {
+    // Handle the case where no user with the specified UID is found
+    throw Exception('User not found');
+  }
+}
+
